@@ -3,8 +3,9 @@
 This Xcode Template File will allow you create Plugins using AMP SDK iOS/tvOS.
 
 ## How to Install
-1. Run the Install Script ./install.sh
-2. Restart Xcode
+1. Download or Clone this Repository
+2. Run the Install Script ./install.sh
+3. Restart Xcode
 
 The Script will install file templates on the path ~/Library/Developer/Xcode/Templates
 
