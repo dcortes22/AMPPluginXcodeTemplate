@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Ancestors</key>
+	<array>
+		<string>com.apple.dt.unit.aggregate</string>
+	</array>
+	<key>Identifier</key>
+	<string>AMPAggregateScript</string>
+	<key>Concrete</key>
+	<true/>
+	<key>Kind</key>
+	<string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+	<key>TargetOnly</key>
+	<true/>
+	<key>Targets</key>
+	<array>
+		<dict>
+			<key>Name</key>
+			<string>___PACKAGENAME___</string>
+			<key>TargetType</key>
+			<string>Aggregate</string>
+			<key>SharedSettings</key>
+			<dict>
+				<key>PRODUCT_NAME</key>
+				<string>$(TARGET_NAME)</string>
+			</dict>
+			<key>BuildPhases</key>
+			<array>
+				<dict>
+					<key>Class</key>
+					<string>ShellScript</string>
+					<key>Name</key>
+					<string>Plugin Build Script</string>
+					<key>ShellPath</key>
+					<string>/bin/bash</string>
+					<key>ShellScript</key>
+					<string>######################
+# Options
+######################
+
+unset TOOLCHAINS
+
+REVEAL_ARCHIVE_IN_FINDER=true
+
+######################
+# BEGIN: Platform specific options
+######################
+FRAMEWORK_NAME=&quot;${PROJECT_NAME}&quot;
+UNIVERSAL_LIBRARY_DIR=&quot;../build/iphone&quot;
+DEVICE_SDK=&quot;iphoneos&quot;
+SIMULATOR_SDK=&quot;iphonesimulator&quot;
+######################
+# END: Platform specific options
+######################
+
+SIMULATOR_LIBRARY_PATH=&quot;${BUILD_DIR}/${CONFIGURATION}-${SIMULATOR_SDK}/${FRAMEWORK_NAME}.framework&quot;
+
+DEVICE_LIBRARY_PATH=&quot;${BUILD_DIR}/${CONFIGURATION}-${DEVICE_SDK}/${FRAMEWORK_NAME}.framework&quot;
+
+FRAMEWORK=&quot;${UNIVERSAL_LIBRARY_DIR}/${FRAMEWORK_NAME}.framework&quot;
+
+
+######################
+# Build Frameworks
+######################
+
+xcodebuild -project ${PROJECT_NAME}.xcodeproj ONLY_ACTIVE_ARCH=NO ENABLE_BITCODE=YES BITCODE_GENERATION_MODE=bitcode -sdk ${SIMULATOR_SDK} -configuration ${CONFIGURATION} clean build CONFIGURATION_BUILD_DIR=${BUILD_DIR}/${CONFIGURATION}-${SIMULATOR_SDK} 2&gt;&amp;1
+
+xcodebuild -project ${PROJECT_NAME}.xcodeproj -sdk ${DEVICE_SDK} ONLY_ACTIVE_ARCH=NO ENABLE_BITCODE=YES BITCODE_GENERATION_MODE=bitcode -configuration ${CONFIGURATION} clean build CONFIGURATION_BUILD_DIR=${BUILD_DIR}/${CONFIGURATION}-${DEVICE_SDK} 2&gt;&amp;1
+
+######################
+# Create directory for universal
+######################
+
+rm -rf &quot;${FRAMEWORK}&quot;
+
+mkdir -p &quot;${FRAMEWORK}&quot;
+
+
+######################
+# Copy files Framework
+######################
+
+cp -r &quot;${DEVICE_LIBRARY_PATH}/.&quot; &quot;${FRAMEWORK}&quot;
+
+
+######################
+# Make an universal binary
+######################
+
+lipo &quot;${SIMULATOR_LIBRARY_PATH}/${FRAMEWORK_NAME}&quot; &quot;${DEVICE_LIBRARY_PATH}/${FRAMEWORK_NAME}&quot; -create -output &quot;${FRAMEWORK}/${FRAMEWORK_NAME}&quot; | echo
+
+# For Swift framework, Swiftmodule needs to be copied in the universal framework
+if [ -d &quot;${SIMULATOR_LIBRARY_PATH}/Modules/${FRAMEWORK_NAME}.swiftmodule/&quot; ]; then
+cp -f ${SIMULATOR_LIBRARY_PATH}/Modules/${FRAMEWORK_NAME}.swiftmodule/* &quot;${FRAMEWORK}/Modules/${FRAMEWORK_NAME}.swiftmodule/&quot; | echo
+                                                                      fi
+                                                                      
+                                                                      if [ -d &quot;${DEVICE_LIBRARY_PATH}/Modules/${FRAMEWORK_NAME}.swiftmodule/&quot; ]; then
+                                                                      cp -f ${DEVICE_LIBRARY_PATH}/Modules/${FRAMEWORK_NAME}.swiftmodule/* &quot;${FRAMEWORK}/Modules/${FRAMEWORK_NAME}.swiftmodule/&quot; | echo
+                                                                      fi
+                                                                      
+                                                                      ######################
+                                                                      # On Release, copy the result to release directory
+                                                                      ######################
+                                                                      OUTPUT_DIR=&quot;${PROJECT_DIR}/Output/${FRAMEWORK_NAME}-${CONFIGURATION}-iphoneuniversal/&quot;
+                                                                      rm -rf &quot;$OUTPUT_DIR&quot;
+                                                                      mkdir -p &quot;$OUTPUT_DIR&quot;
+                                                                      
+                                                                      cp -r &quot;${FRAMEWORK}&quot; &quot;$OUTPUT_DIR&quot;
+                                                                      
+                                                                      if [ ${REVEAL_ARCHIVE_IN_FINDER} = true ]; then
+                                                                      open &quot;${UNIVERSAL_LIBRARY_DIR}/&quot;
+                                                                      fi</string>
+				</dict>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
